@@ -1,0 +1,80 @@
+
+/* ===== Workflow visualizer (self-contained, all classes prefixed wf) ===== */
+.wf{--line:#2e3a4b;--cyan:#4fc3f7;--green:#2ecc71;--blue:#3b82f6;--t1:#e9f1f7;--t2:#c6e0ff;--m1:#6a8aa8;--m2:#9bb8da;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  margin:1.25rem 0;padding:16px;border-radius:22px;text-align:left;color:var(--t1);
+  font-family:system-ui,"Segoe UI",Roboto,sans-serif;
+  background:linear-gradient(180deg,#171e2a,#141a24);border:1px solid var(--line);
+  box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(79,195,247,.05) inset,0 0 40px rgba(79,195,247,.08)}
+.wf[hidden],.wf-key[hidden]{display:none}
+.wf *{box-sizing:border-box}
+.wf-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wf-title{font-size:1.05rem;font-weight:700;letter-spacing:.2px;color:var(--t1);text-shadow:0 0 14px rgba(79,195,247,.35)}
+.wf-title small{display:block;font-size:.72rem;font-weight:500;color:var(--m1);letter-spacing:0;text-shadow:none;margin-top:2px}
+.wf-badge{font:700 11px var(--mono);letter-spacing:1px;padding:5px 12px;border-radius:999px;color:var(--m2);background:#0f141c;border:1px solid var(--line)}
+.wf-badge.run{color:var(--cyan);border-color:rgba(79,195,247,.5);box-shadow:0 0 14px rgba(79,195,247,.25);animation:wfPulse 1.2s ease-in-out infinite}
+.wf-badge.ok{color:#06210f;background:var(--green);border-color:var(--green);box-shadow:0 0 16px rgba(46,204,113,.45)}
+.wf-badge.err{color:#2a0707;background:#ff5252;border-color:#ff5252}
+@keyframes wfPulse{50%{opacity:.55}}
+
+.wf-bar{display:flex;align-items:center;gap:10px;margin:14px 0;padding:8px 8px 8px 18px;border-radius:999px;
+  background:#0f141c;border:1px solid var(--line);box-shadow:inset 0 2px 8px rgba(0,0,0,.55)}
+.wf-file{flex:1;min-width:0;font:13px var(--mono);color:var(--m2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wf-key{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border:0;border-radius:999px;
+  font:700 13px system-ui,"Segoe UI",sans-serif;color:#06210f;background:var(--green);text-decoration:none;cursor:pointer;white-space:nowrap;
+  border-bottom:3px solid rgba(0,0,0,.28);box-shadow:0 4px 0 #0f141c;transition:transform .06s,box-shadow .06s}
+.wf-key:active{transform:translateY(4px);box-shadow:0 0 0 #0f141c}
+.wf-key.pop{animation:wfPop .6s cubic-bezier(.2,1.6,.4,1) both,wfGlow 1.8s ease-in-out .6s infinite}
+@keyframes wfPop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes wfGlow{50%{filter:drop-shadow(0 0 10px rgba(46,204,113,.7))}}
+
+.wf-stage{position:relative;border-radius:18px;border:1px solid var(--line);overflow:hidden;background-color:#0b0e14;
+  background-image:radial-gradient(ellipse at 50% 45%,rgba(79,195,247,.09),transparent 65%),
+    linear-gradient(rgba(70,130,200,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(70,130,200,.05) 1px,transparent 1px);
+  background-size:100% 100%,40px 40px,40px 40px;box-shadow:inset 0 0 70px rgba(0,0,0,.65),0 10px 30px rgba(0,0,0,.4)}
+.wf-stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.45))}
+.wf-stage canvas{display:block;width:100%;height:auto}
+.wf.mob .wf-stage canvas{max-width:420px;margin:0 auto}
+
+.wf-cap{margin:14px 2px 0;min-height:2.9em;font-size:.88rem;color:var(--t2)}
+.wf-cap b{font-weight:600;display:block}
+.wf-cap span{display:block;font:12px var(--mono);color:var(--m1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+
+.wf-status{display:grid;gap:12px;margin-top:10px}
+.wf-pills{display:flex;flex-wrap:wrap;gap:6px}
+.wf-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;
+  color:var(--m1);background:#1b2330;border:1px solid var(--line);transition:color .2s,border-color .2s,box-shadow .2s}
+.wf-pill i{width:8px;height:8px;border-radius:50%;background:var(--c);opacity:.55;transition:background .2s,opacity .2s}
+.wf-pill.active{color:var(--cyan);border-color:rgba(79,195,247,.6);box-shadow:0 0 12px rgba(79,195,247,.28)}
+.wf-pill.active i{background:var(--cyan);opacity:1;animation:wfPulse 1s infinite}
+.wf-pill.done{color:var(--green);border-color:rgba(46,204,113,.45)}
+.wf-pill.done i{background:var(--green);opacity:1}
+.wf-pill.error{color:#ff8a80;border-color:rgba(255,82,82,.6)}
+.wf-pill.error i{background:#ff5252;opacity:1}
+.wf-prog{display:flex;align-items:center;gap:12px}
+.wf-track{flex:1;height:10px;border-radius:999px;background:#0f141c;border:1px solid var(--line);box-shadow:inset 0 1px 4px rgba(0,0,0,.6);overflow:hidden}
+.wf-track i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#4fc3f7,#b388ff);box-shadow:0 0 14px rgba(124,140,255,.6);transition:width .45s ease}
+.wf-pct{font:700 12px var(--mono);color:var(--t2);min-width:3.4em;text-align:right}
+
+.wf-stats{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;margin-top:12px}
+.wf-stat{padding:8px 10px;border-radius:12px;background:#0f141c;border:1px solid var(--line);font-family:var(--mono);min-width:0}
+.wf-stat span{display:block;font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--m1)}
+.wf-stat b{display:block;margin-top:2px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wf-stat.warn b{color:#ffb74d}
+
+.wf-toasts{position:fixed;right:16px;bottom:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:min(360px,calc(100vw - 24px))}
+.wf-toast{padding:10px 14px;border-radius:10px;font:13px system-ui,"Segoe UI",sans-serif;color:var(--t1,#e9f1f7);background:#141a24;
+  border:1px solid #2e3a4b;border-left:4px solid var(--c,#4fc3f7);box-shadow:0 10px 30px rgba(0,0,0,.5);animation:wfToast .35s ease-out both}
+.wf-toast.out{animation:wfToastOut .3s ease-in forwards}
+@keyframes wfToast{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes wfToastOut{to{opacity:0;transform:translateY(8px)}}
+
+@media (max-width:700px){
+  .wf{padding:12px;border-radius:18px}
+  .wf-bar{flex-wrap:wrap;border-radius:20px;padding:10px 10px 10px 14px}
+  .wf-file{flex-basis:100%}
+  .wf-bar .wf-key{flex:1}
+  .wf-stats{grid-template-columns:repeat(3,1fr)}
+  .wf-toasts{left:12px;right:12px;bottom:12px;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){.wf-badge.run,.wf-pill.active i,.wf-key.pop{animation:none}}
