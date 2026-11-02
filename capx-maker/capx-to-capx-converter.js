@@ -17,6 +17,7 @@ const kid = (e, t) => kids(e, t)[0] || null;
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const fmt = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1024).toFixed(1) + ' KB';
+const norm = n => n.replace(/\\/g, '/');   // real .capx files use backslash separators
 const tick = () => new Promise(r => setTimeout(r));
 const mk = (doc, tag, attrs = {}, text) => {
   const e = doc.createElement(tag);
@@ -220,7 +221,7 @@ async function convert(file, log, onPct) {
   log('info', `Archive has ${names.length} files`);
   const capPath = names.find(n => /\.caproj$/i.test(n));
   if (!capPath) throw new Error('No .caproj file found - is this a Construct 2 .capx?');
-  const root = capPath.slice(0, capPath.lastIndexOf('/') + 1);
+  const root = norm(capPath).slice(0, norm(capPath).lastIndexOf('/') + 1);
   log('ok', `Project file: ${capPath}`);
   await tick();
 
@@ -252,7 +253,7 @@ async function convert(file, log, onPct) {
     log('dbg', `object type + global instance renamed to "${target}" (sid kept)`);
   }
   if (/WebStorage/.test(proj)) warn('"WebStorage" still appears in the project file - check manually');
-  zip.file(capPath, proj);
+  zip.file(capPath, proj, { createFolders: false });
   log('ok', 'Project file patched');
   await tick();
 
@@ -267,10 +268,10 @@ async function convert(file, log, onPct) {
     leftRe: new RegExp('\\b' + names2 + '\\.\\w', 'i')
   };
   const esPrefix = (root + 'event sheets/').toLowerCase();
-  const sheets = names.filter(n => n.toLowerCase().startsWith(esPrefix) && /\.xml$/i.test(n) && !/\.uistate\.xml$/i.test(n));
+  const sheets = names.filter(n => norm(n).toLowerCase().startsWith(esPrefix) && /\.xml$/i.test(n) && !/\.uistate\.xml$/i.test(n));
   log('info', `${sheets.length} event sheet(s) found`);
   for (const p of sheets) {
-    const sheet = p.slice(esPrefix.length).replace(/\.xml$/i, '');
+    const sheet = norm(p).slice(esPrefix.length).replace(/\.xml$/i, '');
     const text = (await zip.file(p).async('string')).replace(/^\uFEFF/, '');
     if (!wsNames.some(n => text.includes('type="' + n + '"') || text.includes(n + '.'))) { log('dbg', `${sheet}: no WebStorage use, untouched`); continue; }
     const doc = new DOMParser().parseFromString(text, 'application/xml');
@@ -278,7 +279,7 @@ async function convert(file, log, onPct) {
     const before = JSON.stringify(st);
     const events = kid(doc.documentElement, 'events') || doc.documentElement;
     walk(events, null, [], { ...base, doc, sheet }, null);
-    zip.file(p, toXml(doc)); st.sheets++;
+    zip.file(p, toXml(doc), { createFolders: false }); st.sheets++;
     log('ok', `${sheet}: converted (${Object.keys(st).filter(k => k !== 'warns').map(k => `${k} +${st[k] - JSON.parse(before)[k]}`).filter(s => !/\+0$/.test(s)).join(', ') || 'no changes'})`);
     await tick();
   }
